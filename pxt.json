@@ -1,0 +1,26 @@
+{
+    "name": "smarter Ausweich Roboter",
+    "description": "",
+    "dependencies": {
+        "core": "*",
+        "v3": "*",
+        "MotionKit V2": "github:tinysuperlab/motionkitv2#v0.1.2"
+    },
+    "files": [
+        "main.blocks",
+        "main.ts",
+        "README.md",
+        "main.py"
+    ],
+    "testFiles": [
+        "test.ts"
+    ],
+    "targetVersions": {
+        "target": "7.1.31",
+        "targetId": "calliopemini"
+    },
+    "supportedTargets": [
+        "calliopemini"
+    ],
+    "preferredEditor": "tsprj"
+}
