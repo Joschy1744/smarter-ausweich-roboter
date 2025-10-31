@@ -7,6 +7,7 @@ function setUnderglowCyan () {
     maqueen.setColor(0x00ffff)
 }
 function turnLeft (s: number) {
+    maqueen.writeLED(maqueen.Led.LedLeft, maqueen.LedSwitch.LedOn)
     maqueen.motorRun(maqueen.Motors.M1, maqueen.Dir.CCW, s)
     maqueen.motorRun(maqueen.Motors.M2, maqueen.Dir.CW, s)
 }
@@ -16,36 +17,42 @@ function setUnderglowMagenta () {
 }
 // --- Hinderniswarnung + Ausweichlogik ---
 function warnung () {
-    stopAll()
-    basic.showIcon(IconNames.Surprised)
+    basic.showIcon(IconNames.Square)
+    for (let Index = 0; Index <= speed; Index++) {
+        forward(speed - Index)
+    }
     music.playTone(131, music.beat(BeatFraction.Half))
     blinkUnderglow(3)
 }
 // --- Start per Taste A ---
 input.onButtonPressed(Button.A, function () {
-    gestartet += 1
-    basic.clearScreen()
-    basic.showIcon(IconNames.Happy)
-    music.playMelody("C5 E5 G5 C6", 120)
-    discoStart()
+    if (!(gestartet)) {
+        gestartet = 1
+        basic.showIcon(IconNames.Happy)
+        music.startMelody(music.builtInMelody(Melodies.Chase), MelodyOptions.Once)
+        discoStart()
+        basic.clearScreen()
+    }
 })
 function setUnderglowOrange () {
     basic.setLedColor(0xff8000)
     maqueen.setColor(0xff8000)
 }
-function backward (s: number) {
-    maqueen.motorRun(maqueen.Motors.All, maqueen.Dir.CCW, s)
+function backward (t: number) {
+    maqueen.motorRun(maqueen.Motors.All, maqueen.Dir.CCW, t)
 }
 function turnOffUnderglow () {
     basic.turnRgbLedOff()
     basic.clearScreen()
-    maqueen.setColor(0xffffff)
+    maqueen.setColor(0x000000)
 }
 function blinkUnderglow (times: number) {
     for (let index = 0; index < times; index++) {
         basic.setLedColor(0xffffff)
+        maqueen.setColor(0xffffff)
         basic.pause(150)
         basic.turnRgbLedOff()
+        maqueen.setColor(0x000000)
         basic.pause(150)
     }
 }
@@ -53,35 +60,20 @@ function setUnderglowGreen () {
     basic.setLedColor(0x00ff00)
     maqueen.setColor(0x00ff00)
 }
-function turnRight (s: number) {
-    maqueen.motorRun(maqueen.Motors.M1, maqueen.Dir.CW, s)
-    maqueen.motorRun(maqueen.Motors.M2, maqueen.Dir.CCW, s)
+function turnRight (u: number) {
+    maqueen.writeLED(maqueen.Led.LedRight, maqueen.LedSwitch.LedOn)
+    maqueen.motorRun(maqueen.Motors.M1, maqueen.Dir.CW, u)
+    maqueen.motorRun(maqueen.Motors.M2, maqueen.Dir.CCW, u)
 }
 function stopAll () {
     maqueen.motorStop(maqueen.Motors.All)
+    maqueen.writeLED(maqueen.Led.LedAll, maqueen.LedSwitch.LedOff)
 }
 // --- Tanzmodus per A+B ---
 input.onButtonPressed(Button.AB, function () {
     maqueen.motorStop(maqueen.Motors.All)
     basic.showIcon(IconNames.Heart)
     music.startMelody(music.builtInMelody(Melodies.Entertainer), MelodyOptions.Once)
-    for (let index = 0; index < 2; index++) {
-        forward(speed)
-        setUnderglowGreen()
-        basic.pause(500)
-        backward(speed)
-        setUnderglowRed()
-        basic.pause(500)
-        turnLeft(speed)
-        setUnderglowMagenta()
-        basic.pause(400)
-        turnRight(speed)
-        setUnderglowCyan()
-        basic.pause(400)
-    }
-    stopAll()
-    turnOffUnderglow()
-    basic.clearScreen()
 })
 function discoStart () {
     for (let index = 0; index < 3; index++) {
@@ -96,25 +88,36 @@ function discoStart () {
     }
     turnOffUnderglow()
 }
+// --- Ende per Taste B ---
+input.onButtonPressed(Button.B, function () {
+    if (gestartet) {
+        gestartet = 0
+        basic.showIcon(IconNames.No)
+        music.startMelody(music.builtInMelody(Melodies.PowerDown), MelodyOptions.Once)
+        turnOffUnderglow()
+        stopAll()
+    }
+})
 function setUnderglowRed () {
     basic.setLedColor(0xff0000)
+    maqueen.setColor(0xff0000)
 }
 // --- LED und Anzeige ---
-function showDirection (dir: string) {
+function showDirection (dir2: string) {
     basic.clearScreen()
-    if (dir == "Vor") {
+    if (dir2 == "Vor") {
         basic.showArrow(ArrowNames.South)
-    } else if (dir == "Rueck") {
+    } else if (dir2 == "Rueck") {
         basic.showArrow(ArrowNames.North)
-    } else if (dir == "Links") {
+    } else if (dir2 == "Links") {
         basic.showArrow(ArrowNames.East)
-    } else if (dir == "Rechts") {
+    } else if (dir2 == "Rechts") {
         basic.showArrow(ArrowNames.West)
     }
 }
 // --- Bewegungsfunktionen ---
-function forward (s: number) {
-    maqueen.motorRun(maqueen.Motors.All, maqueen.Dir.CW, s)
+function forward (v: number) {
+    maqueen.motorRun(maqueen.Motors.All, maqueen.Dir.CW, v)
 }
 function smartAvoid () {
     // 1️⃣ Rückwärts
@@ -138,6 +141,7 @@ function smartAvoid () {
         turnRight(speed)
     }
     basic.pause(600)
+    maqueen.writeLED(maqueen.Led.LedAll, maqueen.LedSwitch.LedOff)
     stopAll()
     basic.pause(150)
     // 3️⃣ Zweiter Versuch, falls Hindernis noch da
@@ -155,6 +159,7 @@ function smartAvoid () {
             turnLeft(speed)
         }
         basic.pause(600)
+        maqueen.writeLED(maqueen.Led.LedAll, maqueen.LedSwitch.LedOff)
         stopAll()
         basic.pause(150)
     }
@@ -164,30 +169,38 @@ function smartAvoid () {
     setUnderglowGreen()
     forward(speed)
     basic.pause(1000)
-    stopAll()
-    turnOffUnderglow()
     basic.clearScreen()
 }
 let distance = 0
 let richtung = ""
 let gestartet = 0
 let speed = 0
+stopAll()
+turnOffUnderglow()
 speed = 50
-basic.showString("Drueck A")
+basic.setLedColors(0xff0000, 0xff0000, 0xff0000)
+maqueen.setColor(0xff0000)
+basic.pause(1000)
+basic.setLedColors(0xffff00, 0xffff00, 0xffff00)
+maqueen.setColor(0xffff00)
+basic.pause(1000)
+basic.setLedColors(0x00ff00, 0x00ff00, 0x00ff00)
+maqueen.setColor(0x00ff00)
+basic.pause(1000)
+basic.showString("A")
 // --- Hauptschleife ---
 basic.forever(function () {
     if (gestartet) {
         distance = maqueen.ultrasonic(maqueen.DistanceUnit.Centimeters)
-        if (distance > 0 && distance < 20) {
+        if (distance > 0 && distance <= 20) {
             warnung()
             smartAvoid()
         } else {
             richtung = "Vor"
+            maqueen.writeLED(maqueen.Led.LedAll, maqueen.LedSwitch.LedOff)
             showDirection(richtung)
             setUnderglowGreen()
             forward(speed)
         }
-    } else {
-        stopAll()
     }
 })

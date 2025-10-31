@@ -1,108 +1,216 @@
-def clamp(n: number, min2: number, max2: number):
-    if n < min2:
-        return min2
-    if n > max2:
-        return max2
-    return n
+"""
+
+Smart Disco-Roboter – Calliope Mini V3 + MotionKit V2
+
+"""
+# Korrekte Maqueen-Syntax, 3-Zug-Ausweichmanöver, Untergrundbeleuchtung & Tanzmodus
+def setUnderglowCyan():
+    basic.set_led_color(0x00ffff)
+    maqueen.set_color(0x00ffff)
+def turnLeft(s: number):
+    maqueen.write_led(maqueen.Led.LED_LEFT, maqueen.LedSwitch.LED_ON)
+    maqueen.motor_run(maqueen.Motors.M1, maqueen.Dir.CCW, s)
+    maqueen.motor_run(maqueen.Motors.M2, maqueen.Dir.CW, s)
+def setUnderglowMagenta():
+    basic.set_led_color(0xff00ff)
+    maqueen.set_color(0xff00ff)
+# --- Hinderniswarnung + Ausweichlogik ---
+def warnung():
+    stopAll()
+    basic.show_icon(IconNames.SURPRISED)
+    music.play_tone(131, music.beat(BeatFraction.HALF))
+    blinkUnderglow(3)
+# --- Start per Taste A ---
 
 def on_button_pressed_a():
-    l = readAnalog(sensorLeftPin)
-    r = readAnalog(sensorRightPin)
-    basic.show_string("L")
-    basic.show_number(l)
-    basic.pause(200)
-    basic.show_string("R")
-    basic.show_number(r)
+    global gestartet
+    gestartet = 1
+    basic.show_icon(IconNames.HAPPY)
+    music.start_melody(music.built_in_melody(Melodies.CHASE), MelodyOptions.ONCE)
+    discoStart()
+    basic.clear_screen()
 input.on_button_pressed(Button.A, on_button_pressed_a)
 
-"""
+def setUnderglowOrange():
+    basic.set_led_color(0xff8000)
+    maqueen.set_color(0xff8000)
+def backward(t: number):
+    maqueen.motor_run(maqueen.Motors.ALL, maqueen.Dir.CCW, t)
+def turnOffUnderglow():
+    basic.turn_rgb_led_off()
+    basic.clear_screen()
+    maqueen.set_color(0x000000)
+def blinkUnderglow(times: number):
+    for index in range(times):
+        basic.set_led_color(0xffffff)
+        maqueen.set_color(0xffffff)
+        basic.pause(150)
+        basic.turn_rgb_led_off()
+        maqueen.set_color(0x000000)
+        basic.pause(150)
+def setUnderglowGreen():
+    basic.set_led_color(0x00ff00)
+    maqueen.set_color(0x00ff00)
+def turnRight(u: number):
+    maqueen.write_led(maqueen.Led.LED_RIGHT, maqueen.LedSwitch.LED_ON)
+    maqueen.motor_run(maqueen.Motors.M1, maqueen.Dir.CW, u)
+    maqueen.motor_run(maqueen.Motors.M2, maqueen.Dir.CCW, u)
+def stopAll():
+    maqueen.motor_stop(maqueen.Motors.ALL)
+    maqueen.write_led(maqueen.Led.LED_ALL, maqueen.LedSwitch.LED_OFF)
+# --- Tanzmodus per A+B ---
 
-Linefollower für Calliope mini V3 + MotionKit 2 (MakeCode – JavaScript)
+def on_button_pressed_ab():
+    maqueen.motor_stop(maqueen.Motors.ALL)
+    basic.show_icon(IconNames.HEART)
+    music.start_melody(music.built_in_melody(Melodies.ENTERTAINER),
+        MelodyOptions.ONCE)
+    for index2 in range(2):
+        forward(speed)
+        maqueen.write_led(maqueen.Led.LED_ALL, maqueen.LedSwitch.LED_ON)
+        setUnderglowGreen()
+        basic.pause(500)
+        maqueen.write_led(maqueen.Led.LED_ALL, maqueen.LedSwitch.LED_OFF)
+        backward(speed)
+        setUnderglowRed()
+        basic.pause(500)
+        maqueen.write_led(maqueen.Led.LED_LEFT, maqueen.LedSwitch.LED_ON)
+        maqueen.write_led(maqueen.Led.LED_RIGHT, maqueen.LedSwitch.LED_OFF)
+        turnLeft(speed)
+        setUnderglowMagenta()
+        basic.pause(400)
+        maqueen.write_led(maqueen.Led.LED_LEFT, maqueen.LedSwitch.LED_OFF)
+        maqueen.write_led(maqueen.Led.LED_RIGHT, maqueen.LedSwitch.LED_ON)
+        turnRight(speed)
+        setUnderglowCyan()
+        basic.pause(400)
+        maqueen.write_led(maqueen.Led.LED_ALL, maqueen.LedSwitch.LED_OFF)
+    stopAll()
+    turnOffUnderglow()
+    basic.clear_screen()
+input.on_button_pressed(Button.AB, on_button_pressed_ab)
 
-Anpassbare Parameter oben
+def discoStart():
+    for index3 in range(3):
+        setUnderglowRed()
+        basic.pause(150)
+        setUnderglowGreen()
+        basic.pause(150)
+        setUnderglowMagenta()
+        basic.pause(150)
+        setUnderglowCyan()
+        basic.pause(150)
+    turnOffUnderglow()
+# --- Start per Taste A ---
 
-"""
-"""
+def on_button_pressed_b():
+    global gestartet
+    gestartet = 0
+    basic.show_icon(IconNames.NO)
+    music.start_melody(music.built_in_melody(Melodies.POWER_DOWN),
+        MelodyOptions.ONCE)
+    turnOffUnderglow()
+    stopAll()
+input.on_button_pressed(Button.B, on_button_pressed_b)
 
-Bei MotionKit 2 sind die Bewegungs- und Sensorik-Blöcke via Erweiterung verfügbar.
-
-Wir nutzen „analoge Sensorwerte" der Linienfolgesensoren unter der Platine.
-
-"""
-rightSpeed = 0
-leftSpeed = 0
-turnPWM = 0
-turn = 0
-error = 0
-normR = 0
-normL = 0
-invertSensors = False
-# linker Linienfolgesensor (Unterseite) – analog
-sensorLeftPin = AnalogPin.P0
-# rechter Linienfolgesensor – analog
-sensorRightPin = AnalogPin.P1
-# PWM Pin für linken Motor – an MotionKit Platine
-motorLeftPwmPin = AnalogPin.P8
-# Richtung Pin links
-motorLeftDirPin = DigitalPin.P12
-# PWM Pin für rechten Motor
-motorRightPwmPin = AnalogPin.P2
-# Richtung Pin rechts
-motorRightDirPin = DigitalPin.P13
-PWM_MAX = 1023
-# Regelungsparameter
-baseSpeed = 400
-Kp = 0.8
-sensorThreshold = 600
-def readAnalog(pin: AnalogPin):
-    return pins.analog_read_pin(pin)
-def writeAnalog(pin2: AnalogPin, value: number):
-    value = clamp(Math.round(value), 0, PWM_MAX)
-    pins.analog_write_pin(pin2, value)
-def writeDigital(pin3: DigitalPin, value2: number):
-    pins.digital_write_pin(pin3, value2)
-def setMotor(pwmPin: AnalogPin, dirPin: DigitalPin, speed: number):
-    global PWM_MAX
-    speed = clamp(speed, -PWM_MAX, PWM_MAX)
-    if speed >= 0:
-        writeDigital(dirPin, 0)
-        writeAnalog(pwmPin, speed)
+def setUnderglowRed():
+    basic.set_led_color(0xff0000)
+    maqueen.set_color(0xff0000)
+# --- LED und Anzeige ---
+def showDirection(dir2: str):
+    basic.clear_screen()
+    if dir2 == "Vor":
+        basic.show_arrow(ArrowNames.SOUTH)
+    elif dir2 == "Rueck":
+        basic.show_arrow(ArrowNames.NORTH)
+    elif dir2 == "Links":
+        basic.show_arrow(ArrowNames.EAST)
+    elif dir2 == "Rechts":
+        basic.show_arrow(ArrowNames.WEST)
+# --- Bewegungsfunktionen ---
+def forward(v: number):
+    maqueen.motor_run(maqueen.Motors.ALL, maqueen.Dir.CW, v)
+def smartAvoid():
+    global richtung, distance
+    # 1️⃣ Rückwärts
+    richtung = "Rueck"
+    showDirection(richtung)
+    setUnderglowRed()
+    backward(speed)
+    basic.pause(700)
+    stopAll()
+    basic.pause(100)
+    # 2️⃣ Zufällige Drehung
+    if Math.random_boolean():
+        richtung = "Links"
+        showDirection(richtung)
+        setUnderglowOrange()
+        turnLeft(speed)
     else:
-        writeDigital(dirPin, 1)
-        writeAnalog(pwmPin, -speed)
-def readSensorNorm(pin4: AnalogPin):
-    raw = readAnalog(pin4)
-    if invertSensors:
-        raw = PWM_MAX - raw
-    return raw / PWM_MAX
+        richtung = "Rechts"
+        showDirection(richtung)
+        setUnderglowOrange()
+        turnRight(speed)
+    basic.pause(600)
+    maqueen.write_led(maqueen.Led.LED_ALL, maqueen.LedSwitch.LED_OFF)
+    stopAll()
+    basic.pause(150)
+    # 3️⃣ Zweiter Versuch, falls Hindernis noch da
+    distance = maqueen.ultrasonic(maqueen.DistanceUnit.CENTIMETERS)
+    if distance > 0 and distance < 20:
+        if richtung == "Links":
+            richtung = "Rechts"
+            showDirection(richtung)
+            setUnderglowOrange()
+            turnRight(speed)
+        else:
+            richtung = "Links"
+            showDirection(richtung)
+            setUnderglowOrange()
+            turnLeft(speed)
+        basic.pause(600)
+        maqueen.write_led(maqueen.Led.LED_ALL, maqueen.LedSwitch.LED_OFF)
+        stopAll()
+        basic.pause(150)
+    # 4️⃣ Wieder vorwärts
+    richtung = "Vor"
+    showDirection(richtung)
+    setUnderglowGreen()
+    forward(speed)
+    basic.pause(1000)
+    stopAll()
+    turnOffUnderglow()
+    basic.clear_screen()
+distance = 0
+richtung = ""
+gestartet = 0
+speed = 0
+speed = 50
+basic.set_led_colors(0xff0000, 0xff0000, 0xff0000)
+basic.pause(100)
+basic.set_led_colors(0xff0000, 0xffff00, 0xffff00)
+basic.pause(100)
+basic.set_led_colors(0xff0000, 0xffff00, 0xff0000)
+basic.pause(100)
+basic.show_string("Druecke A")
+# --- Hauptschleife ---
 
 def on_forever():
-    global normL, normR, error, turn, turnPWM, leftSpeed, rightSpeed
-    rawL = readAnalog(sensorLeftPin)
-    rawR = readAnalog(sensorRightPin)
-    if invertSensors:
-        rawL = PWM_MAX - rawL
-        rawR = PWM_MAX - rawR
-    L_line = 1 if rawL > sensorThreshold else 0
-    R_line = 1 if rawR > sensorThreshold else 0
-    normL = rawL / PWM_MAX
-    normR = rawR / PWM_MAX
-    error = normL - normR
-    turn = Kp * error
-    turnPWM = turn * PWM_MAX
-    leftSpeed = baseSpeed - turnPWM
-    rightSpeed = baseSpeed + turnPWM
-    leftSpeed = clamp(Math.round(leftSpeed), 0 - PWM_MAX, PWM_MAX)
-    rightSpeed = clamp(Math.round(rightSpeed), 0 - PWM_MAX, PWM_MAX)
-    if L_line == 0 and R_line == 0:
-        setMotor(motorLeftPwmPin, motorLeftDirPin, 0)
-        setMotor(motorRightPwmPin, motorRightDirPin, 0)
-        basic.pause(50)
-        setMotor(motorLeftPwmPin, motorLeftDirPin, -200)
-        setMotor(motorRightPwmPin, motorRightDirPin, 200)
-        basic.pause(80)
+    global distance, richtung
+    if gestartet:
+        distance = maqueen.ultrasonic(maqueen.DistanceUnit.CENTIMETERS)
+        if distance > 0 and distance < 20:
+            warnung()
+            smartAvoid()
+        else:
+            richtung = "Vor"
+            maqueen.write_led(maqueen.Led.LED_ALL, maqueen.LedSwitch.LED_OFF)
+            showDirection(richtung)
+            setUnderglowGreen()
+            forward(speed)
     else:
-        setMotor(motorLeftPwmPin, motorLeftDirPin, leftSpeed)
-        setMotor(motorRightPwmPin, motorRightDirPin, rightSpeed)
-    basic.pause(10)
+        maqueen.write_led(maqueen.Led.LED_ALL, maqueen.LedSwitch.LED_OFF)
+        stopAll()
+        setUnderglowGreen()
+        basic.show_string("Druecke A")
 basic.forever(on_forever)
