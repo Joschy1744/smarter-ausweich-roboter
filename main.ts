@@ -1,21 +1,21 @@
 /**
  * Smart Disco-Roboter – Calliope Mini V3 + MotionKit V2
  */
-/**
- * Korrekte Maqueen-Syntax, 3-Zug-Ausweichmanöver, Untergrundbeleuchtung & Tanzmodus
- */
-function setUnderglowCyan() {
+// Korrekte Maqueen-Syntax, 3-Zug-Ausweichmanöver, Untergrundbeleuchtung & Tanzmodus
+function setUnderglowCyan () {
     basic.setLedColor(0x00ffff)
+    maqueen.setColor(0x00ffff)
 }
-function turnLeft(s: number) {
+function turnLeft (s: number) {
     maqueen.motorRun(maqueen.Motors.M1, maqueen.Dir.CCW, s)
     maqueen.motorRun(maqueen.Motors.M2, maqueen.Dir.CW, s)
 }
-function setUnderglowMagenta() {
+function setUnderglowMagenta () {
     basic.setLedColor(0xff00ff)
+    maqueen.setColor(0xff00ff)
 }
 // --- Hinderniswarnung + Ausweichlogik ---
-function warnung() {
+function warnung () {
     stopAll()
     basic.showIcon(IconNames.Surprised)
     music.playTone(131, music.beat(BeatFraction.Half))
@@ -23,23 +23,25 @@ function warnung() {
 }
 // --- Start per Taste A ---
 input.onButtonPressed(Button.A, function () {
-    gestartet = true
+    gestartet += 1
     basic.clearScreen()
     basic.showIcon(IconNames.Happy)
     music.playMelody("C5 E5 G5 C6", 120)
     discoStart()
 })
-function setUnderglowOrange() {
+function setUnderglowOrange () {
     basic.setLedColor(0xff8000)
+    maqueen.setColor(0xff8000)
 }
-function backward(s: number) {
+function backward (s: number) {
     maqueen.motorRun(maqueen.Motors.All, maqueen.Dir.CCW, s)
 }
-function turnOffUnderglow() {
+function turnOffUnderglow () {
     basic.turnRgbLedOff()
     basic.clearScreen()
+    maqueen.setColor(0xffffff)
 }
-function blinkUnderglow(times: number) {
+function blinkUnderglow (times: number) {
     for (let index = 0; index < times; index++) {
         basic.setLedColor(0xffffff)
         basic.pause(150)
@@ -47,14 +49,15 @@ function blinkUnderglow(times: number) {
         basic.pause(150)
     }
 }
-function setUnderglowGreen() {
+function setUnderglowGreen () {
     basic.setLedColor(0x00ff00)
+    maqueen.setColor(0x00ff00)
 }
-function turnRight(s: number) {
+function turnRight (s: number) {
     maqueen.motorRun(maqueen.Motors.M1, maqueen.Dir.CW, s)
     maqueen.motorRun(maqueen.Motors.M2, maqueen.Dir.CCW, s)
 }
-function stopAll() {
+function stopAll () {
     maqueen.motorStop(maqueen.Motors.All)
 }
 // --- Tanzmodus per A+B ---
@@ -80,7 +83,7 @@ input.onButtonPressed(Button.AB, function () {
     turnOffUnderglow()
     basic.clearScreen()
 })
-function discoStart() {
+function discoStart () {
     for (let index = 0; index < 3; index++) {
         setUnderglowRed()
         basic.pause(150)
@@ -93,27 +96,27 @@ function discoStart() {
     }
     turnOffUnderglow()
 }
-function setUnderglowRed() {
+function setUnderglowRed () {
     basic.setLedColor(0xff0000)
 }
 // --- LED und Anzeige ---
-function showDirection(dir: string) {
+function showDirection (dir: string) {
     basic.clearScreen()
     if (dir == "Vor") {
-        basic.showArrow(ArrowNames.North)
-    } else if (dir == "Rueck") {
         basic.showArrow(ArrowNames.South)
+    } else if (dir == "Rueck") {
+        basic.showArrow(ArrowNames.North)
     } else if (dir == "Links") {
-        basic.showArrow(ArrowNames.West)
-    } else if (dir == "Rechts") {
         basic.showArrow(ArrowNames.East)
+    } else if (dir == "Rechts") {
+        basic.showArrow(ArrowNames.West)
     }
 }
 // --- Bewegungsfunktionen ---
-function forward(s: number) {
+function forward (s: number) {
     maqueen.motorRun(maqueen.Motors.All, maqueen.Dir.CW, s)
 }
-function smartAvoid() {
+function smartAvoid () {
     // 1️⃣ Rückwärts
     richtung = "Rueck"
     showDirection(richtung)
@@ -139,7 +142,7 @@ function smartAvoid() {
     basic.pause(150)
     // 3️⃣ Zweiter Versuch, falls Hindernis noch da
     distance = maqueen.ultrasonic(maqueen.DistanceUnit.Centimeters)
-    if (distance > 0 && distance < 15) {
+    if (distance > 0 && distance < 20) {
         if (richtung == "Links") {
             richtung = "Rechts"
             showDirection(richtung)
@@ -167,15 +170,15 @@ function smartAvoid() {
 }
 let distance = 0
 let richtung = ""
-let gestartet = false
+let gestartet = 0
 let speed = 0
-speed = 100
+speed = 50
 basic.showString("Drueck A")
 // --- Hauptschleife ---
 basic.forever(function () {
     if (gestartet) {
         distance = maqueen.ultrasonic(maqueen.DistanceUnit.Centimeters)
-        if (distance > 0 && distance < 15) {
+        if (distance > 0 && distance < 20) {
             warnung()
             smartAvoid()
         } else {
