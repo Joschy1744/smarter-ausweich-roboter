@@ -90,13 +90,11 @@ function discoStart () {
 }
 // --- Ende per Taste B ---
 input.onButtonPressed(Button.B, function () {
-    if (gestartet) {
-        gestartet = 0
-        basic.showIcon(IconNames.No)
-        music.startMelody(music.builtInMelody(Melodies.PowerDown), MelodyOptions.Once)
-        turnOffUnderglow()
-        stopAll()
-    }
+    gestartet = 0
+    basic.showIcon(IconNames.No)
+    music.startMelody(music.builtInMelody(Melodies.PowerDown), MelodyOptions.Once)
+    turnOffUnderglow()
+    stopAll()
 })
 function setUnderglowRed () {
     basic.setLedColor(0xff0000)
@@ -140,13 +138,13 @@ function smartAvoid () {
         setUnderglowOrange()
         turnRight(speed)
     }
-    basic.pause(600)
+    basic.pause(randint(400, 800))
     maqueen.writeLED(maqueen.Led.LedAll, maqueen.LedSwitch.LedOff)
     stopAll()
     basic.pause(150)
     // 3️⃣ Zweiter Versuch, falls Hindernis noch da
     distance = maqueen.ultrasonic(maqueen.DistanceUnit.Centimeters)
-    if (distance > 0 && distance < 20) {
+    if (distance > 0 && distance <= 25) {
         if (richtung == "Links") {
             richtung = "Rechts"
             showDirection(richtung)
@@ -158,7 +156,7 @@ function smartAvoid () {
             setUnderglowOrange()
             turnLeft(speed)
         }
-        basic.pause(600)
+        basic.pause(randint(400, 800))
         maqueen.writeLED(maqueen.Led.LedAll, maqueen.LedSwitch.LedOff)
         stopAll()
         basic.pause(150)
@@ -168,7 +166,7 @@ function smartAvoid () {
     showDirection(richtung)
     setUnderglowGreen()
     forward(speed)
-    basic.pause(1000)
+    basic.pause(200)
     basic.clearScreen()
 }
 let distance = 0
