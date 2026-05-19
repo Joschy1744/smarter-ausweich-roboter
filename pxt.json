@@ -16,7 +16,7 @@
         "test.ts"
     ],
     "targetVersions": {
-        "target": "7.1.31",
+        "target": "8.1.10",
         "targetId": "calliopemini"
     },
     "supportedTargets": [

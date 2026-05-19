@@ -17,7 +17,7 @@ function setUnderglowMagenta () {
 }
 // --- Hinderniswarnung + Ausweichlogik ---
 function warnung () {
-    basic.showIcon(IconNames.Square)
+    basic.showIcon(IconNames.Square, 6)
     for (let Index = 0; Index <= speed; Index++) {
         forward(speed - Index)
     }
@@ -28,7 +28,7 @@ function warnung () {
 input.onButtonPressed(Button.A, function () {
     if (!(gestartet)) {
         gestartet = 1
-        basic.showIcon(IconNames.Happy)
+        basic.showIcon(IconNames.Happy, 6)
         music.startMelody(music.builtInMelody(Melodies.Chase), MelodyOptions.Once)
         discoStart()
         basic.clearScreen()
@@ -72,7 +72,7 @@ function stopAll () {
 // --- Tanzmodus per A+B ---
 input.onButtonPressed(Button.AB, function () {
     maqueen.motorStop(maqueen.Motors.All)
-    basic.showIcon(IconNames.Heart)
+    basic.showIcon(IconNames.Heart, 6)
     music.startMelody(music.builtInMelody(Melodies.Entertainer), MelodyOptions.Once)
 })
 function discoStart () {
@@ -91,7 +91,7 @@ function discoStart () {
 // --- Ende per Taste B ---
 input.onButtonPressed(Button.B, function () {
     gestartet = 0
-    basic.showIcon(IconNames.No)
+    basic.showIcon(IconNames.No, 6)
     music.startMelody(music.builtInMelody(Melodies.PowerDown), MelodyOptions.Once)
     turnOffUnderglow()
     stopAll()
@@ -185,7 +185,7 @@ basic.pause(1000)
 basic.setLedColors(0x00ff00, 0x00ff00, 0x00ff00)
 maqueen.setColor(0x00ff00)
 basic.pause(1000)
-basic.showString("A")
+basic.showString("A", 5)
 // --- Hauptschleife ---
 basic.forever(function () {
     if (gestartet) {
